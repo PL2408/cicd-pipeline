@@ -1,0 +1,38 @@
+name: Back Pull Request
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  back_pull_request:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v2
+      
+    - name: Create back pull request to dev
+      run: |
+        git checkout dev
+        git pull origin dev
+        git merge origin/main --no-edit
+        git push origin dev
+
+    - name: Create back pull request to qa
+      run: |
+        git checkout qa
+        git pull origin qa
+        git merge origin/dev --no-edit
+        git push origin qa
+
+    - name: Send Slack notification
+      uses: rtCamp/action-slack-notify@v2
+      with:
+        status: 'completed'
+        author_name: ${{ github.actor }}
+        title: 'Back Pull Request Created'
+        text: 'A back pull request to dev branch was successfully created.'
+      env:
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
